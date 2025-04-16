@@ -2,14 +2,11 @@ from django.db import models
 from django.conf import settings
 
 class AdmRekamMedisPasien(models.Model):
-    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='rekam_medis'
     )
-    
-    # Identitas Pasien
     nama_lengkap = models.CharField(max_length=100)
     tempat_lahir = models.CharField(max_length=100)
     tanggal_lahir = models.DateField()
@@ -17,8 +14,6 @@ class AdmRekamMedisPasien(models.Model):
     golongan_darah = models.CharField(max_length=2, choices=[('A', 'A'), ('B', 'B'), ('AB', 'AB'), ('O', 'O')], blank=True, null=True)
     no_hp = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
-
-    # Informasi Pembayaran
     jenis_kepesertaan = models.CharField(
         max_length=30,
         choices=[
@@ -31,8 +26,6 @@ class AdmRekamMedisPasien(models.Model):
         null=True
     )
     nomor_kartu = models.CharField(max_length=50, blank=True, null=True)
-
-    # Kontak Darurat
     nama_kontak_darurat = models.CharField(max_length=100, blank=True, null=True)
     hubungan_kontak = models.CharField(
         max_length=20,
@@ -47,17 +40,12 @@ class AdmRekamMedisPasien(models.Model):
         null=True
     )
     no_hp_kontak = models.CharField(max_length=20, blank=True, null=True)
-
-    # Riwayat Kesehatan
     riwayat_penyakit = models.TextField(blank=True, null=True)
     alergi_obat_makanan = models.TextField(blank=True, null=True)
     riwayat_operasi = models.TextField(blank=True, null=True)
     riwayat_pengobatan = models.TextField(blank=True, null=True)
-
-    # Gaya Hidup
     merokok = models.CharField(max_length=10, choices=[("Iya", "Iya"), ("Tidak", "Tidak")])
     konsumsi_alkohol = models.CharField(max_length=10, choices=[("Iya", "Iya"), ("Tidak", "Tidak")])
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

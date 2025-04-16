@@ -1,7 +1,6 @@
 from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -11,7 +10,6 @@ from .serializers import JadwalDokterSerializer, DoctorProfileUpdateSerializer, 
 from patient.models import AdmRekamMedisPasien
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-import traceback
 from django.core import serializers
 
 User = get_user_model()
@@ -45,8 +43,6 @@ def list_meeting_requests_for_dokter_view(request):
     try:
         doctor = user
         meeting_requests = MeetingRequest.objects.filter(dokter=doctor)
-
-        # Tambahkan filter berdasarkan ID jika diberikan di query
         meeting_id = request.query_params.get('id')
         if meeting_id:
             meeting_requests = meeting_requests.filter(id=meeting_id)
@@ -90,8 +86,6 @@ def update_status_meeting_satus_view(request):
 def create_meeting_request_view(request):
     user = request.user
     data = request.data
-    
-    # Validasi input dasar
     required_fields = ['dokter', 'jadwal']
     for field in required_fields:
         if field not in data:
@@ -101,7 +95,6 @@ def create_meeting_request_view(request):
             )
 
     try:
-        # 1. Validasi rekam medis pasien
         try:
             rekam_medis = AdmRekamMedisPasien.objects.get(user=user)
         except AdmRekamMedisPasien.DoesNotExist:
@@ -109,8 +102,7 @@ def create_meeting_request_view(request):
                 {'success': False, 'error': 'Rekam medis belum diisi'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        # 2. Validasi dokter
+            
         try:
             dokter = User.objects.get(id=data['dokter'], role='doctor')
         except User.DoesNotExist:
@@ -119,7 +111,6 @@ def create_meeting_request_view(request):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # 3. Validasi jadwal
         try:
             jadwal = JadwalDokter.objects.get(id=data['jadwal'], dokter=dokter)
         except JadwalDokter.DoesNotExist:
@@ -128,14 +119,12 @@ def create_meeting_request_view(request):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # 4. Cek ketersediaan jadwal
         if MeetingRequest.objects.filter(jadwal=jadwal, dokter=dokter).exists():
             return Response(
                 {'success': False, 'error': 'Jadwal sudah digunakan'},
                 status=status.HTTP_409_CONFLICT
             )
 
-        # 5. Buat meeting request
         meeting_request = MeetingRequest.objects.create(
             pasien=user,
             dokter=dokter,
@@ -144,7 +133,6 @@ def create_meeting_request_view(request):
             status='pending'
         )
 
-        # 6. Serialize response
         serializer = MeetingRequestSerializer(meeting_request)
         return Response(
             {
@@ -191,7 +179,7 @@ def doctor_detail(request, doctor_id):
         "id": doctor.id,
         "name": doctor.get_full_name() or doctor.username,
         "email": doctor.email,
-        "skills": doctor.skills or [],  # Pastikan ini dikembalikan sebagai list
+        "skills": doctor.skills or [],
     }
     return Response(data)
 
@@ -205,7 +193,7 @@ def list_doctors(request):
             "name": doctor.get_full_name() or doctor.username,
             "email": doctor.email,
             "slogan": doctor.slogan,
-            "specialty": doctor.specialty,  # tambahkan ini
+            "specialty": doctor.specialty,
         }
         for doctor in doctors
     ]
@@ -231,29 +219,28 @@ def doctor_schedule_view(request):
         if not schedules:
             return Response({"error": "Schedules data is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Hapus jadwal lama dokter
         JadwalDokter.objects.filter(dokter=request.user).delete()
 
         created = []
         for hari, detail in schedules.items():
-            tanggal_str = detail.get("date")  # format: "YYYY-MM-DD"
+            tanggal_str = detail.get("date")
             time_range = detail.get("timeRange", "")
             times = detail.get("times", [])
 
             if not tanggal_str:
-                continue  # skip jika tidak ada tanggal
+                continue
 
             try:
                 tanggal = datetime.strptime(tanggal_str, "%Y-%m-%d").date()
             except ValueError:
-                continue  # skip jika format salah
+                continue
 
             for jam in times:
                 serializer = JadwalDokterSerializer(data={
                     "hari": hari,
                     "tanggal": tanggal,
                     "jam_mulai": jam,
-                    "jam_selesai": jam,  # kamu bisa ubah ke jam_selesai +1 jam nanti
+                    "jam_selesai": jam,
                     "time_range_label": time_range
                 })
 

@@ -36,4 +36,3 @@ class MeetingRequest(models.Model):
 
     def __str__(self):
         return f"{self.dokter.get_full_name() or self.dokter.username} → ({self.jadwal.hari}, {self.jadwal.tanggal} {self.jadwal.jam_mulai})"
-

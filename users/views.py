@@ -54,8 +54,7 @@ class LoginView(generics.GenericAPIView):
                     'id': user.id,
                     'username': user.username,
                     'email': user.email,
-                    'role': user.role  # Tambahkan role dalam response
+                    'role': user.role
                 }
             })
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-

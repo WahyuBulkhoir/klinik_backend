@@ -31,7 +31,7 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
             'pasien_username',
             'dokter',
             'dokter_nama',
-            'jadwal',  # foreign key ID
+            'jadwal',
             'jadwal_detail',
             'rekam_medis',
             'rekam_medis_detail',
